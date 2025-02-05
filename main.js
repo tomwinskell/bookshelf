@@ -1,29 +1,59 @@
+const input = window['search-query'];
+
+input.addEventListener('input', () => {
+  if (input.value.length >= 5) {
+    input.classList.remove('is-invalid');
+    input.classList.add('is-valid');
+  }
+});
+
 document.querySelector('.search').addEventListener('click', (e) => {
   render();
 });
 
-window['search-query'].addEventListener('keydown', (e) => {
+input.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
     render();
   }
 });
 
+window.addEventListener('scroll', () => {
+  if (
+    window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 &&
+    !isFetching
+  ) {
+    fetchBooks();
+  }
+});
 
 function render() {
-  getInput();
-  fetchBooks();
+  if (validateInput()) {
+    getInput();
+    fetchBooks();
+  }
+}
+
+function getInput() {
+  input.classList.remove('is-invalid');
+  input.classList.remove('is-valid');
+  query = input.value;
+  document.querySelector('.books').innerHTML = '';
+}
+
+function validateInput() {
+  if (input.value.length < 5) {
+    input.classList.add('is-invalid');
+    input.classList.remove('is-valid');
+    return false;
+  }
+  return true;
 }
 
 let startIndex = 0;
 let query;
 let isFetching = false;
 let hasMoreData = true;
-
-function getInput() {
-  query = window['search-query'].value;
-  document.querySelector('.books').innerHTML = '';
-}
 
 async function fetchBooks() {
   if (isFetching || !hasMoreData) return;
@@ -73,12 +103,3 @@ function renderBooks(booksArray) {
     );
   });
 }
-
-window.addEventListener('scroll', () => {
-  if (
-    window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 &&
-    !isFetching
-  ) {
-    fetchBooks();
-  }
-});
