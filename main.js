@@ -1,33 +1,43 @@
-const loader = document.getElementById("loader");
-
 document.querySelector('.search').addEventListener('click', (e) => {
-  getInput(e.target);
-  fetchBooks(query);
+  render();
 });
+
+window['search-query'].addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    render();
+  }
+});
+
+
+function render() {
+  getInput();
+  fetchBooks();
+}
 
 let startIndex = 0;
 let query;
 let isFetching = false;
 let hasMoreData = true;
 
-function getInput(target) {
-  const el = document.getElementById('search-query');
-  query = el.value;
+function getInput() {
+  query = window['search-query'].value;
+  document.querySelector('.books').innerHTML = '';
 }
 
 async function fetchBooks() {
-  if ( isFetching || !hasMoreData ) return;
+  if (isFetching || !hasMoreData) return;
   isFetching = true;
   loader.style.display = 'block';
-  
+
   const res = await fetch(
     `https://www.googleapis.com/books/v1/volumes?q=${query}&startIndex=${startIndex}`
   );
   const data = await res.json();
 
-  if ( data.length === 0 ) {
+  if (data.length === 0) {
     hasMoreData = false;
-    loader.innerText = 'No more content to load.'
+    window['loader'].innerText = 'No more content to load.';
     return;
   }
 
@@ -45,7 +55,9 @@ function renderBooks(booksArray) {
       title: item['title'] || null,
       author: item['authors'] ? item['authors'][0] : null,
       pageCount: item['pageCount'] || null,
-      isbn: item['industryIdentifiers'] ? item['industryIdentifiers'][0]['identifier'] : null,
+      isbn: item['industryIdentifiers']
+        ? item['industryIdentifiers'][0]['identifier']
+        : null,
       imageUrl: item['imageLinks'] ? item['imageLinks']['thumbnail'] : '',
     };
     booksEl.insertAdjacentHTML(
@@ -64,8 +76,9 @@ function renderBooks(booksArray) {
 
 window.addEventListener('scroll', () => {
   if (
-    window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 && !isFetching
+    window.innerHeight + window.scrollY >= document.body.offsetHeight - 200 &&
+    !isFetching
   ) {
     fetchBooks();
   }
-})
+});
